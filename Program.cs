@@ -107,62 +107,56 @@ namespace BinaryTree
 
         private class BinaryTreeEnumerator : IEnumerator<T>
         {
-            private List<Node> nodes = new List<Node>();
-            private int index;
+            private Stack<Node> stack = new Stack<Node>();
+            private Node current;
 
             public BinaryTreeEnumerator(Node root)
             {
-                PushLeftNodes(root);
+                current = root;
+                PushLeftNodes();
             }
 
-            private void PushLeftNodes(Node node)
+            private void PushLeftNodes()
             {
-                while (node != null)
+                while (current != null)
                 {
-                    nodes.Add(node);
-                    node = node.Left;
+                    stack.Push(current);
+                    current = current.Left;
                 }
             }
 
-            public T Current => nodes[index - 1].Value;
-
+            public T Current
+            {
+                get
+                {
+                    if (stack.Count == 0)
+                        return default; // Возвращаем значение по умолчанию, если стек пуст
+                    return stack.Peek().Value;
+                }
+            }
             object IEnumerator.Current => Current;
 
             public bool MoveNext()
             {
-                if (index == 0)
+                if (stack.Count == 0)
                     return false;
 
-                Node node = nodes[--index];
-                PushLeftNodes(node.Right);
+                current = stack.Pop();
+                Node node = current.Right;
+                while (node != null)
+                {
+                    stack.Push(node);
+                    node = node.Left;
+                }
                 return true;
             }
 
-            public bool MovePrevious()
+            public void Reset()
             {
-                if (index == nodes.Count)
-                    return false;
-
-                Node node = nodes[++index];
-                PushLeftNodes(node.Left);
-                return true;
+                throw new NotImplementedException();
             }
 
-            public static BinaryTreeEnumerator operator ++(BinaryTreeEnumerator enumerator)
-            {
-                enumerator.MoveNext();
-                return enumerator;
-            }
-
-            public static BinaryTreeEnumerator operator --(BinaryTreeEnumerator enumerator)
-            {
-                enumerator.MovePrevious();
-                return enumerator;
-            }
-
-            public void Dispose() {}
-
-            public void Reset() {}
+            public void Dispose() { }
         }
 
         private void PrintTree(Node startNode, string indent = "", Side? side = null)
@@ -198,24 +192,78 @@ namespace BinaryTree
         {
             var binaryTree = new BinaryTree<int>();
 
-            binaryTree.Add(8);
-            binaryTree.Add(3);
-            binaryTree.Add(10);
-            binaryTree.Add(1);
-            binaryTree.Add(6);
-            binaryTree.Add(4);
-            binaryTree.Add(7);
-            binaryTree.Add(14);
-            binaryTree.Add(16);
-
-            Console.WriteLine("Прямой обход дерева:");
-            foreach (var item in binaryTree)
+            Console.WriteLine("Двоичное дерево:");
+            while (true)
             {
-                Console.Write(item + " ");
-            }
-            Console.WriteLine();
+                Console.WriteLine("\nВыберите действие:");
+                Console.WriteLine("1. Добавить новый узел");
+                Console.WriteLine("2. Вывести дерево прямым обходом");
+                Console.WriteLine("3. Вывести дерево обратным обходом");
+                Console.WriteLine("4. Вывести дерево центральным обходом");
+                Console.WriteLine("0. Выйти");
 
-            Console.ReadLine();
+                Console.Write("Введите номер действия: ");
+                string choice = Console.ReadLine();
+
+                switch (choice)
+                {
+                    case "1":
+                        Console.Write("Введите значение нового узла: ");
+                        if (int.TryParse(Console.ReadLine(), out int value))
+                        {
+                            binaryTree.Add(value);
+                            Console.WriteLine("Новый узел успешно добавлен.");
+                        } else
+                        {
+                            Console.WriteLine("Ошибка при вводе значения узла.");
+                        }
+                        break;
+                    case "2":
+                        Console.WriteLine("Прямой обход дерева:");
+                        foreach (var item in binaryTree)
+                        {
+                            Console.Write(item + " ");
+                        }
+                        Console.WriteLine();
+                        break;
+                    case "3":
+                        Console.WriteLine("Обратный обход дерева:");
+                        BinaryTreeReverseTraversal(binaryTree.RootNode);
+                        Console.WriteLine();
+                        break;
+                    case "4":
+                        Console.WriteLine("Центральный обход дерева:");
+                        BinaryTreeCentralTraversal(binaryTree.RootNode);
+                        Console.WriteLine();
+                        break;
+                    case "0":
+                        Console.WriteLine("Выход из программы.");
+                        return;
+                    default:
+                        Console.WriteLine("Неверный выбор.");
+                        break;
+                }
+            }
+        }
+
+        static void BinaryTreeReverseTraversal<T>(BinaryTree<T>.Node node) where T : IComparable
+        {
+            if (node != null)
+            {
+                BinaryTreeReverseTraversal(node.Right);
+                Console.Write(node.Value + " ");
+                BinaryTreeReverseTraversal(node.Left);
+            }
+        }
+
+        static void BinaryTreeCentralTraversal<T>(BinaryTree<T>.Node node) where T : IComparable
+        {
+            if (node != null)
+            {
+                BinaryTreeCentralTraversal(node.Left);
+                Console.Write(node.Value + " ");
+                BinaryTreeCentralTraversal(node.Right);
+            }
         }
     }
 }
