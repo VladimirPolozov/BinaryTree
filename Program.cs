@@ -1,9 +1,12 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Security.Policy;
+using System.Threading.Tasks;
 
 namespace BinaryTree
 {
-    public class BinaryTree<T> where T : IComparable
+    public class BinaryTree<T> : IEnumerable<T>  where T : IComparable
     {
         public enum Side
         {
@@ -92,9 +95,52 @@ namespace BinaryTree
             return newNode;
         }
 
-        public void PrintTree()
+        public IEnumerator<T> GetEnumerator()
         {
-            PrintTree(RootNode);
+            return new BinaryTreeEnumerator(RootNode);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        private class BinaryTreeEnumerator : IEnumerator<T>
+        {
+            private List<Node> nodes = new List<Node>();
+            private int index;
+
+            public BinaryTreeEnumerator(Node root)
+            {
+                PushLeftNodes(root);
+            }
+
+            private void PushLeftNodes(Node node)
+            {
+                while (node != null)
+                {
+                    nodes.Add(node);
+                    node = node.Left;
+                }
+            }
+
+            public T Current => nodes[index - 1].Value;
+
+            object IEnumerator.Current => Current;
+
+            public bool MoveNext()
+            {
+                if (index == 0)
+                    return false;
+
+                Node node = nodes[--index];
+                PushLeftNodes(node.Right);
+                return true;
+            }
+
+            public void Dispose() {}
+
+            public void Reset() {}
         }
 
         private void PrintTree(Node startNode, string indent = "", Side? side = null)
@@ -140,7 +186,12 @@ namespace BinaryTree
             binaryTree.Add(14);
             binaryTree.Add(16);
 
-            binaryTree.PrintTree();
+            Console.WriteLine("Прямой обход дерева:");
+            foreach (var item in binaryTree)
+            {
+                Console.Write(item + " ");
+            }
+            Console.WriteLine();
 
             Console.ReadLine();
         }
