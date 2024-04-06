@@ -138,6 +138,28 @@ namespace BinaryTree
                 return true;
             }
 
+            public bool MovePrevious()
+            {
+                if (index == nodes.Count)
+                    return false;
+
+                Node node = nodes[++index];
+                PushLeftNodes(node.Left);
+                return true;
+            }
+
+            public static BinaryTreeEnumerator operator ++(BinaryTreeEnumerator enumerator)
+            {
+                enumerator.MoveNext();
+                return enumerator;
+            }
+
+            public static BinaryTreeEnumerator operator --(BinaryTreeEnumerator enumerator)
+            {
+                enumerator.MovePrevious();
+                return enumerator;
+            }
+
             public void Dispose() {}
 
             public void Reset() {}
